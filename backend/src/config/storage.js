@@ -9,6 +9,11 @@ const maxUploadBytes = Number.isSafeInteger(configuredMaxUploadBytes)
   && configuredMaxUploadBytes > 0
   ? configuredMaxUploadBytes
   : 10 * 1024 * 1024;
+const configuredMaxStorageBytes = Number(process.env.MAX_STORAGE_BYTES);
+const maxStorageBytes = Number.isSafeInteger(configuredMaxStorageBytes)
+  && configuredMaxStorageBytes > 0
+  ? configuredMaxStorageBytes
+  : 1024 * 1024 * 1024;
 
 function resolveStoragePath(storageKey) {
   if (typeof storageKey !== 'string' || path.basename(storageKey) !== storageKey) {
@@ -25,6 +30,7 @@ function resolveStoragePath(storageKey) {
 
 module.exports = {
   maxUploadBytes,
+  maxStorageBytes,
   resolveStoragePath,
   storageDirectory,
 };

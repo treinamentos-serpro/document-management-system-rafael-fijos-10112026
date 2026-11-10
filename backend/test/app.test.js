@@ -10,6 +10,8 @@ const storageDirectory = fsSync.mkdtempSync(
 );
 process.env.STORAGE_DIR = storageDirectory;
 process.env.MAX_UPLOAD_BYTES = '5';
+process.env.MAX_STORAGE_BYTES = '8';
+fsSync.writeFileSync(path.join(storageDirectory, 'orphaned-file'), 'old');
 
 const app = require('../src/app');
 
@@ -87,6 +89,18 @@ test('envia, lista e baixa documentos somente para o dono', async () => {
     assert.equal(downloadResponse.status, 200);
     assert.equal(await downloadResponse.text(), 'hello');
     assert.match(downloadResponse.headers.get('content-disposition'), /notes\.txt/);
+
+    const overCapacityResponse = await fetch(`${baseUrl}/upload`, {
+      method: 'POST',
+      headers: { 'X-User-Id': 'user-a' },
+      body: createUploadForm('x'),
+    });
+    assert.equal(overCapacityResponse.status, 507);
+    assert.equal(
+      (await overCapacityResponse.json()).error.code,
+      'STORAGE_LIMIT_EXCEEDED',
+    );
+    assert.equal((await fs.readdir(storageDirectory)).length, 2);
   });
 });
 
@@ -105,6 +119,14 @@ test('valida o usuário, o arquivo e o limite de tamanho', async () => {
     });
     assert.equal(missingFileResponse.status, 400);
     assert.equal((await missingFileResponse.json()).error.code, 'FILE_REQUIRED');
+
+    const oneByteOverLimitResponse = await fetch(`${baseUrl}/upload`, {
+      method: 'POST',
+      headers: { 'X-User-Id': 'user-a' },
+      body: createUploadForm('123456'),
+    });
+    assert.equal(oneByteOverLimitResponse.status, 413);
+    assert.equal((await oneByteOverLimitResponse.json()).error.code, 'FILE_TOO_LARGE');
 
     const tooLargeResponse = await fetch(`${baseUrl}/upload`, {
       method: 'POST',

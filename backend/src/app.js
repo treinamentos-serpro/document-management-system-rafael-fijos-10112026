@@ -47,7 +47,7 @@ app.use((error, req, res, next) => {
     });
   }
 
-  if (error.code === 'ENOENT' || error.code === 'EACCES' || error.code === 'ENOSPC') {
+  if (error.syscall || ['ENOENT', 'EACCES', 'ENOSPC'].includes(error.code)) {
     return res.status(500).json({
       error: {
         code: 'STORAGE_ERROR',

@@ -1,10 +1,56 @@
 const fs = require('node:fs/promises');
-const { resolveStoragePath } = require('../config/storage');
+const path = require('node:path');
+const {
+  maxStorageBytes,
+  resolveStoragePath,
+  storageDirectory,
+} = require('../config/storage');
 
 const documents = new Map();
+let storedBytes = 0;
+let storageUsageInitialized = false;
+let storageUsageInitialization;
+
+async function initializeStorageUsage() {
+  if (storageUsageInitialized) {
+    return;
+  }
+
+  if (!storageUsageInitialization) {
+    storageUsageInitialization = (async () => {
+      await fs.mkdir(storageDirectory, { recursive: true });
+      const entries = await fs.readdir(storageDirectory, { withFileTypes: true });
+      const fileSizes = await Promise.all(entries
+        .filter((entry) => entry.isFile())
+        .map(async (entry) => (
+          await fs.stat(path.join(storageDirectory, entry.name))
+        ).size));
+
+      storedBytes = fileSizes.reduce((total, size) => total + size, 0);
+      storageUsageInitialized = true;
+    })().catch((error) => {
+      storageUsageInitialization = undefined;
+      throw error;
+    });
+  }
+
+  return storageUsageInitialization;
+}
 
 function add(document) {
+  if (!storageUsageInitialized) {
+    throw new Error('O uso do armazenamento ainda não foi inicializado.');
+  }
+
+  if (storedBytes + document.size > maxStorageBytes) {
+    const error = new Error('O armazenamento atingiu o limite configurado.');
+    error.code = 'STORAGE_LIMIT_EXCEEDED';
+    error.status = 507;
+    throw error;
+  }
+
   documents.set(document.id, document);
+  storedBytes += document.size;
   return document;
 }
 
@@ -51,5 +97,6 @@ module.exports = {
   findById,
   findByOwner,
   getFilePath,
+  initializeStorageUsage,
   removeFile,
 };

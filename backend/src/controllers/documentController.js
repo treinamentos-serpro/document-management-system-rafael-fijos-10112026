@@ -16,6 +16,15 @@ function requireOwner(req, res, next) {
   return next();
 }
 
+async function prepareUpload(req, res, next) {
+  try {
+    await documentService.initializeStorageUsage();
+    return next();
+  } catch (error) {
+    return next(error);
+  }
+}
+
 async function uploadDocument(req, res, next) {
   if (!req.file) {
     return res.status(400).json({
@@ -82,6 +91,7 @@ async function downloadDocument(req, res, next) {
 module.exports = {
   downloadDocument,
   listDocuments,
+  prepareUpload,
   requireOwner,
   uploadDocument,
 };

@@ -66,6 +66,7 @@ aplicação web com API Express e armazenamento local.
 | `PORT` | `3000` | Porta HTTP do backend. |
 | `STORAGE_DIR` | `backend/storage` | Diretório local de gravação dos arquivos. |
 | `MAX_UPLOAD_BYTES` | `10485760` | Limite de tamanho por arquivo, em bytes (10 MiB). |
+| `MAX_STORAGE_BYTES` | `1073741824` | Limite total do armazenamento local, em bytes (1 GiB). |
 
 Os valores padrão são relativos ao diretório raiz do backend/aplicação e devem
 ser resolvidos de forma consistente, sem depender do diretório corrente de
@@ -140,8 +141,9 @@ As mensagens são destinadas à interface e podem ser localizadas; o campo `code
 
 - Erros: `400 USER_ID_REQUIRED` quando o cabeçalho estiver ausente ou vazio;
   `400 FILE_REQUIRED` quando o arquivo não for enviado; `413 FILE_TOO_LARGE`
-  quando exceder `MAX_UPLOAD_BYTES`; `500 STORAGE_ERROR` para falhas de disco
-  ou registro de metadados.
+  quando exceder `MAX_UPLOAD_BYTES`; `507 STORAGE_LIMIT_EXCEEDED` quando o total
+  de arquivos armazenados exceder `MAX_STORAGE_BYTES`; `500 STORAGE_ERROR` para
+  falhas de disco ou registro de metadados.
 - Não se impõe lista de extensões ou tipos MIME nesta versão. O nome original é
   apenas metadado e deve ser tratado com segurança ao formar o cabeçalho de
   download.

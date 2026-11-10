@@ -42,8 +42,13 @@ async function getDocumentForDownload(id, owner) {
   };
 }
 
+function initializeStorageUsage() {
+  return documentRepository.initializeStorageUsage();
+}
+
 module.exports = {
   createDocument,
   getDocumentForDownload,
+  initializeStorageUsage,
   listDocuments,
 };
