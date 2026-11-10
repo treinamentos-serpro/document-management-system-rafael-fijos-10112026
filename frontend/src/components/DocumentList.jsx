@@ -35,12 +35,18 @@ export default function DocumentList({
   onRetry,
 }) {
   return (
-    <section className="documents-panel" aria-labelledby="documents-heading">
+    <section
+      className="documents-panel"
+      aria-labelledby="documents-heading"
+      aria-busy={isLoading}
+    >
       <div className="documents-heading section-heading">
         <span className="section-index">02</span>
         <div>
           <h2 id="documents-heading">Seus documentos</h2>
-          <p>{documents.length} {documents.length === 1 ? 'arquivo' : 'arquivos'}</p>
+          <p aria-live="polite" aria-atomic="true">
+            {documents.length} {documents.length === 1 ? 'arquivo' : 'arquivos'}
+          </p>
         </div>
         <button
           className="text-button refresh-button"

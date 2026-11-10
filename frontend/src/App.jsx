@@ -72,6 +72,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      <a className="skip-link" href="#main-content">Pular para o conteúdo</a>
       <header className="topbar">
         <a className="brand" href="/" aria-label="DMS, início">
           <span className="brand-mark" aria-hidden="true"><i /><i /></span>
@@ -80,7 +81,7 @@ export default function App() {
         <span className="storage-indicator"><i aria-hidden="true" /> ARMAZENAMENTO LOCAL</span>
       </header>
 
-      <main className="workspace">
+      <main id="main-content" className="workspace" tabIndex="-1">
         <div className="workspace-heading">
           <div className="page-title">
             <p className="eyebrow">BIBLIOTECA DIGITAL <span>01 / 01</span></p>
@@ -92,6 +93,7 @@ export default function App() {
             <div className="user-field-row">
               <input
                 id="user-id"
+                required
                 value={userIdDraft}
                 onChange={(event) => setUserIdDraft(event.target.value)}
                 placeholder="Ex.: usuario-123"
