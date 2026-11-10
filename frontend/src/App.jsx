@@ -25,6 +25,7 @@ export default function App() {
   const [userIdDraft, setUserIdDraft] = useState(getSavedUserId);
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [refreshToken, setRefreshToken] = useState(0);
 
@@ -66,8 +67,13 @@ export default function App() {
   }
 
   async function handleUpload(file) {
-    await uploadDocument(file, ownerId);
-    setRefreshToken((current) => current + 1);
+    setIsUploading(true);
+    try {
+      await uploadDocument(file, ownerId);
+      setRefreshToken((current) => current + 1);
+    } finally {
+      setIsUploading(false);
+    }
   }
 
   return (
@@ -94,12 +100,17 @@ export default function App() {
               <input
                 id="user-id"
                 required
+                disabled={isUploading}
                 value={userIdDraft}
                 onChange={(event) => setUserIdDraft(event.target.value)}
                 placeholder="Ex.: usuario-123"
                 autoComplete="username"
               />
-              <button className="user-submit" type="submit" disabled={!userIdDraft.trim()}>
+              <button
+                className="user-submit"
+                type="submit"
+                disabled={!userIdDraft.trim() || isUploading}
+              >
                 Aplicar
               </button>
             </div>

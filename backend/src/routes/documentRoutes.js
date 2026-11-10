@@ -26,6 +26,7 @@ const upload = multer({
 router.post(
   '/upload',
   documentController.requireOwner,
+  documentController.prepareUpload,
   upload.single('file'),
   documentController.uploadDocument,
 );

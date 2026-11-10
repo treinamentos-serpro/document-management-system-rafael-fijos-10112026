@@ -40,6 +40,12 @@ async function preparePage(page, handlers = {}) {
         });
       }
 
+      if (handlers.holdUpload) {
+        await new Promise((resolve) => {
+          handlers.releaseUpload = resolve;
+        });
+      }
+
       uploaded = true;
       return route.fulfill({
         status: 201,
@@ -127,6 +133,25 @@ test('anuncia erro de upload sem introduzir violações WCAG', async ({ page }) 
     'O arquivo excede o tamanho máximo permitido.',
   );
   await expectNoWcagViolations(page);
+});
+
+test('impede trocar o usuário enquanto o envio está em andamento', async ({ page }) => {
+  const handlers = { holdUpload: true };
+  await preparePage(page, handlers);
+
+  await page.locator('input[type="file"]').setInputFiles({
+    name: 'documento.txt',
+    mimeType: 'text/plain',
+    buffer: Buffer.from('documento'),
+  });
+  await page.getByRole('button', { name: 'Enviar documento' }).click();
+
+  await expect(page.getByLabel('Identificador do usuário')).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Aplicar' })).toBeDisabled();
+  handlers.releaseUpload();
+
+  await expect(page.locator('.inline-message[role="status"]'))
+    .toContainText('Arquivo enviado com sucesso.');
 });
 
 test('anuncia falha na listagem e mantém a ação de recuperação acessível', async ({ page }) => {
