@@ -11,16 +11,57 @@
 // usando multer com diskStorage. Não utilize provedores externos.
 
 const express = require('express');
+const multer = require('multer');
+const documentRoutes = require('./routes/documentRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+app.use(documentRoutes);
 
-// Endpoint de verificação de saúde. As demais rotas (/upload, /documents,
-// /documents/:id/download) serão implementadas durante o Passo 2.
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
+});
+
+app.use((error, req, res, next) => {
+  if (res.headersSent) {
+    return next(error);
+  }
+
+  if (error instanceof multer.MulterError) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({
+        error: {
+          code: 'FILE_TOO_LARGE',
+          message: 'O arquivo excede o tamanho máximo permitido.',
+        },
+      });
+    }
+
+    return res.status(400).json({
+      error: {
+        code: 'INVALID_MULTIPART',
+        message: 'A requisição de envio de arquivo é inválida.',
+      },
+    });
+  }
+
+  if (error.code === 'ENOENT' || error.code === 'EACCES' || error.code === 'ENOSPC') {
+    return res.status(500).json({
+      error: {
+        code: 'STORAGE_ERROR',
+        message: 'Não foi possível acessar o armazenamento de documentos.',
+      },
+    });
+  }
+
+  return res.status(error.status || 500).json({
+    error: {
+      code: error.code || 'INTERNAL_ERROR',
+      message: error.status ? error.message : 'Ocorreu um erro interno.',
+    },
+  });
 });
 
 if (require.main === module) {
