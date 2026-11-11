@@ -61,8 +61,7 @@ function findById(id) {
 function findByOwner(owner) {
   return [...documents.values()]
     .filter((document) => document.owner === owner)
-    .sort((left, right) => right.uploadedAt.localeCompare(left.uploadedAt))
-    .map(({ storageKey, ...document }) => document);
+    .sort((left, right) => right.uploadedAt.localeCompare(left.uploadedAt));
 }
 
 function getFilePath(storageKey) {
